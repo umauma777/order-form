@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注文フォーム</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      padding-bottom: 40px;
+    }
+
+    .header {
+      background: #06C755;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .section {
+      background: white;
+      margin: 12px;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #06C755;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #fafafa;
+      appearance: none;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #06C755;
+      background: white;
+    }
+
+    .choices-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .choice-btn {
+      padding: 8px 16px;
+      border: 2px solid #ddd;
+      border-radius: 20px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .choice-btn.selected {
+      border-color: #06C755;
+      background: #06C755;
+      color: white;
+    }
+
+    .cart-item {
+      background: #f8fff8;
+      border: 1px solid #c8e6c9;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .cart-item-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 6px;
+      padding-right: 24px;
+    }
+
+    .cart-item-detail {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #e57373;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .empty-cart {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+      padding: 20px 0;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: opacity 0.2s;
+    }
+
+    .btn:active { opacity: 0.7; }
+
+    .btn-add {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .btn-submit {
+      background: #06C755;
+      color: white;
+    }
+
+    .btn-submit:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #888;
+    }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .success-text {
+      font-size: 20px;
+      font-weight: bold;
+      color: #06C755;
+      margin-bottom: 8px;
+    }
+
+    .success-sub {
+      font-size: 14px;
+      color: #888;
+    }
+
+    .quantity-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .quantity-wrap input {
+      width: 80px;
+      text-align: center;
+    }
+
+    .quantity-unit {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .required {
+      color: #e57373;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    #main-form { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- ▼▼▼ここだけ書き換えてください▼▼▼ -->
+<script>
+  const GAS_URL = 'ここにGASのウェブアプリURLを貼り付け';
+  const LIFF_ID = 'ここにLIFF IDを貼り付け';
+</script>
+<!-- ▲▲▲ここまで▲▲▲ -->
+
+<div class="header">📦 注文フォーム</div>
+
+<!-- メイン画面 -->
+<div id="main-form">
+
+  <!-- お客様情報 -->
+  <div class="section">
+    <div class="section-title">👤 お客様情報</div>
+    <label>お名前 <span class="required">※必須</span></label>
+    <input type="text" id="customerName" placeholder="例：田中 太郎">
+    <label>会社名・店舗名 <span class="required">※必須</span></label>
+    <input type="text" id="companyName" placeholder="例：〇〇商店">
+  </div>
+
+  <!-- 商品選択 -->
+  <div class="section">
+    <div class="section-title">🛍️ 商品を選ぶ</div>
+
+    <label>カテゴリー（メーカー）<span class="required">※必須</span></label>
+    <select id="makerSelect" onchange="onMakerChange()">
+      <option value="">-- 選択してください --</option>
+    </select>
+
+    <label>商品名 <span class="required">※必須</span></label>
+    <select id="productSelect" onchange="onProductChange()" disabled>
+      <option value="">-- カテゴリーを先に選択 --</option>
+    </select>
+
+    <!-- 商品ごとの動的項目 -->
+    <div id="dynamicItems"></div>
+
+    <!-- 数量（全商品共通） -->
+    <div id="quantityWrap" style="display:none;">
+      <label>数量 <span class="required">※必須</span></label>
+      <div class="quantity-wrap">
+        <input type="text" id="quantity" placeholder="例：3" inputmode="numeric">
+        <span class="quantity-unit">個 / 本 / 箱</span>
+      </div>
+    </div>
+
+    <button class="btn btn-add" onclick="addToCart()">＋ カートに追加</button>
+  </div>
+
+  <!-- カート -->
+  <div class="section">
+    <div class="section-title">🛒 カート（注文リスト）</div>
+    <div id="cartList">
+      <div class="empty-cart">商品をカートに追加してください</div>
+    </div>
+  </div>
+
+  <!-- 注文情報 -->
+  <div class="section">
+    <div class="section-title">📅 注文情報</div>
+    <label>納期希望日</label>
+    <input type="date" id="deliveryDate">
+    <label>備考・特記事項</label>
+    <textarea id="note" rows="3" placeholder="まとめて備考がある場合はこちら"></textarea>
+  </div>
+
+  <!-- 送信ボタン -->
+  <div style="margin: 0 12px;">
+    <button class="btn btn-submit" id="submitBtn" onclick="submitOrder()" disabled>
+      注文を送信する
+    </button>
+  </div>
+
+  <div class="loading" id="loading">📤 送信中...</div>
+</div>
+
+<!-- 完了画面 -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <div class="success-text">注文が完了しました！</div>
+  <div class="success-sub">ご注文ありがとうございます。<br>確認次第ご連絡いたします。</div>
+</div>
+
+<script>
+  let masterData = {};
+  let cart = [];
+
+  // ============================================================
+  // 初期化
+  // ============================================================
+  async function init() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+    } catch(e) {
+      console.log('LIFF init error (テスト環境では無視):', e);
+    }
+    await loadMaster();
+  }
+
+  // ============================================================
+  // 商品マスタ読み込み
+  // ============================================================
+  async function loadMaster() {
+    try {
+      const res  = await fetch(`${GAS_URL}?action=getMaster`);
+      const json = await res.json();
+      masterData = json.master;
+
+      const makerSel = document.getElementById('makerSelect');
+      Object.keys(masterData).forEach(maker => {
+        const opt = document.createElement('option');
+        opt.value = maker;
+        opt.textContent = maker;
+        makerSel.appendChild(opt);
+      });
+    } catch(e) {
+      alert('商品データの読み込みに失敗しました。再読み込みしてください。');
+    }
+  }
+
+  // ============================================================
+  // メーカー選択時
+  // ============================================================
+  function onMakerChange() {
+    const maker      = document.getElementById('makerSelect').value;
+    const productSel = document.getElementById('productSelect');
+
+    productSel.innerHTML = '<option value="">-- 選択してください --</option>';
+    document.getElementById('dynamicItems').innerHTML = '';
+    document.getElementById('quantityWrap').style.display = 'none';
+
+    if (!maker) {
+      productSel.disabled = true;
+      return;
+    }
+
+    productSel.disabled = false;
+    const products = masterData[maker] || {};
+    Object.keys(products).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      productSel.appendChild(opt);
+    });
+  }
+
+  // ============================================================
+  // 商品選択時：動的に入力欄を生成
+  // ============================================================
+  function onProductChange() {
+    const maker       = document.getElementById('makerSelect').value;
+    const productName = document.getElementById('productSelect').value;
+    const container   = document.getElementById('dynamicItems');
+    container.innerHTML = '';
+
+    if (!productName) {
+      document.getElementById('quantityWrap').style.display = 'none';
+      return;
+    }
+
+    const items = masterData[maker][productName] || [];
+
+    items.forEach((item, idx) => {
+      const wrap = document.createElement('div');
+
+      const lbl = document.createElement('label');
+      lbl.textContent = item.label;
+      wrap.appendChild(lbl);
+
+      if (item.inputType === '選択') {
+        const choicesWrap = document.createElement('div');
+        choicesWrap.className = 'choices-wrap';
+        choicesWrap.id = `choices_${idx}`;
+
+        item.choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = choice;
+          btn.dataset.value = choice;
+          btn.onclick = () => selectChoice(btn, idx);
+          choicesWrap.appendChild(btn);
+        });
+        wrap.appendChild(choicesWrap);
+
+        // 選択値保持用の隠し要素
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.id = `item_${idx}`;
+        wrap.appendChild(hidden);
+
+      } else {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = `item_${idx}`;
+        input.placeholder = `${item.label}を入力`;
+        wrap.appendChild(input);
+      }
+
+      container.appendChild(wrap);
+    });
+
+    document.getElementById('quantityWrap').style.display = 'block';
+  }
+
+  // ============================================================
+  // 選択ボタンのトグル
+  // ============================================================
+  function selectChoice(btn, idx) {
+    const wrap = document.getElementById(`choices_${idx}`);
+    wrap.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById(`item_${idx}`).value = btn.dataset.value;
+  }
+
+  // ============================================================
+  // カートに追加
+  // ============================================================
+  function addToCart() {
+    const maker       = document.getElementById('makerSelect').value;
+    const productName = document.getElementById('productSelect').value;
+    const quantity    = document.getElementById('quantity').value.trim();
+
+    if (!maker || !productName) { alert('カテゴリーと商品を選択してください。'); return; }
+    if (!quantity) { alert('数量を入力してください。'); return; }
+
+    const items   = masterData[maker][productName] || [];
+    const options = [];
+
+    for (let idx = 0; idx < items.length; idx++) {
+      const val = document.getElementById(`item_${idx}`)?.value.trim();
+      if (!val) { alert(`「${items[idx].label}」を入力または選択してください。`); return; }
+      options.push({ label: items[idx].label, value: val });
+    }
+
+    cart.push({ maker, productName, options, quantity });
+    renderCart();
+    resetProductForm();
+  }
+
+  // ============================================================
+  // カート表示
+  // ============================================================
+  function renderCart() {
+    const list = document.getElementById('cartList');
+    if (cart.length === 0) {
+      list.innerHTML = '<div class="empty-cart">商品をカートに追加してください</div>';
+      document.getElementById('submitBtn').disabled = true;
+      return;
+    }
+
+    list.innerHTML = '';
+    cart.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+
+      let detail = item.options.map(o => `${o.label}：${o.value}`).join('　');
+      detail += `　数量：${item.quantity}`;
+
+      div.innerHTML = `
+        <button class="delete-btn" onclick="removeFromCart(${idx})">✕</button>
+        <div class="cart-item-title">【${idx+1}】${item.maker} / ${item.productName}</div>
+        <div class="cart-item-detail">${detail}</div>
+      `;
+      list.appendChild(div);
+    });
+
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  // ============================================================
+  // カートから削除
+  // ============================================================
+  function removeFromCart(idx) {
+    cart.splice(idx, 1);
+    renderCart();
+  }
+
+  // ============================================================
+  // 商品選択フォームをリセット
+  // ============================================================
+  function resetProductForm() {
+    document.getElementById('makerSelect').value = '';
+    document.getElementById('productSelect').innerHTML = '<option value="">-- カテゴリーを先に選択 --</option>';
+    document.getElementById('productSelect').disabled = true;
+    document.getElementById('dynamicItems').innerHTML = '';
+    document.getElementById('quantityWrap').style.display = 'none';
+    document.getElementById('quantity').value = '';
+  }
+
+  // ============================================================
+  // 注文送信
+  // ============================================================
+  async function submitOrder() {
+    const customerName = document.getElementById('customerName').value.trim();
+    const companyName  = document.getElementById('companyName').value.trim();
+
+    if (!customerName) { alert('お名前を入力してください。'); return; }
+    if (!companyName)  { alert('会社名・店舗名を入力してください。'); return; }
+    if (cart.length === 0) { alert('カートに商品を追加してください。'); return; }
+
+    const payload = {
+      customerName,
+      companyName,
+      deliveryDate : document.getElementById('deliveryDate').value,
+      note         : document.getElementById('note').value.trim(),
+      items        : cart
+    };
+
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+
+    try {
+      await fetch(GAS_URL, {
+        method  : 'POST',
+        mode    : 'no-cors',
+        headers : { 'Content-Type': 'application/json' },
+        body    : JSON.stringify(payload)
+      });
+
+      document.getElementById('main-form').style.display    = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+
+    } catch(e) {
+      alert('送信に失敗しました。もう一度お試しください。');
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('loading').style.display = 'none';
+    }
+  }
+
+  // 起動
+  init();
+</script>
+</body>
+</html>
