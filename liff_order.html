@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>注文フォーム</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -223,8 +223,8 @@
 
 <!-- ▼▼▼ここだけ書き換えてください▼▼▼ -->
 <script>
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbztaSzk9qkGkmBtuWp-wIDHXCZXUfpmwvix9VyYjxhjLBl8fcGed0p4FuTLPljM983B/exec';
-  const LIFF_ID = '2009343714-c9mpTVwr';
+  const GAS_URL = 'ここにGASのウェブアプリURLを貼り付け';
+
 </script>
 <!-- ▲▲▲ここまで▲▲▲ -->
 
@@ -282,10 +282,10 @@
   <!-- 注文情報 -->
   <div class="section">
     <div class="section-title">📅 注文情報</div>
-    <label>納期希望日</label>
+    <label>ご希望納期・納入期限</label>
     <input type="date" id="deliveryDate">
-    <label>備考・特記事項</label>
-    <textarea id="note" rows="3" placeholder="まとめて備考がある場合はこちら"></textarea>
+    <label>備考・納品場所・現場名など</label>
+    <textarea id="note" rows="3" placeholder="納品場所・現場名・その他ご要望などをご記入ください"></textarea>
   </div>
 
   <!-- 送信ボタン -->
@@ -313,11 +313,6 @@
   // 初期化
   // ============================================================
   async function init() {
-    try {
-      await liff.init({ liffId: LIFF_ID });
-    } catch(e) {
-      console.log('LIFF init error (テスト環境では無視):', e);
-    }
     await loadMaster();
   }
 
