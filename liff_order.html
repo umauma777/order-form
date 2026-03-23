@@ -223,7 +223,7 @@
 
 <!-- ▼▼▼ここだけ書き換えてください▼▼▼ -->
 <script>
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbztaSzk9qkGkmBtuWp-wIDHXCZXUfpmwvix9VyYjxhjLBl8fcGed0p4FuTLPljM983B/exec';
+  const GAS_URL = 'ここにGASのウェブアプリURLを貼り付け';
 
 </script>
 <!-- ▲▲▲ここまで▲▲▲ -->
@@ -284,8 +284,10 @@
     <div class="section-title">📅 注文情報</div>
     <label>ご希望納期・納入期限</label>
     <input type="date" id="deliveryDate">
+    <p style="font-size:12px; color:#e57373; margin-top:4px;">※ご希望に添えない場合がございます。別途ご確認ください。</p>
     <label>備考・納品場所・現場名など</label>
     <textarea id="note" rows="3" placeholder="納品場所・現場名・その他ご要望などをご記入ください"></textarea>
+    <p style="font-size:12px; color:#e57373; margin-top:4px;">※納期・配送条件についてはご確認の上ご連絡いたします。</p>
   </div>
 
   <!-- 送信ボタン -->
@@ -391,7 +393,7 @@
       const wrap = document.createElement('div');
 
       const lbl = document.createElement('label');
-      lbl.textContent = item.label;
+      lbl.innerHTML = `${item.label} <span class="required">※必須</span>`;
       wrap.appendChild(lbl);
 
       if (item.inputType === '選択') {
@@ -448,16 +450,20 @@
     const quantity    = document.getElementById('quantity').value.trim();
 
     if (!maker || !productName) { alert('カテゴリーと商品を選択してください。'); return; }
-    if (!quantity) { alert('数量を入力してください。'); return; }
 
     const items   = masterData[maker][productName] || [];
     const options = [];
 
     for (let idx = 0; idx < items.length; idx++) {
       const val = document.getElementById(`item_${idx}`)?.value.trim();
-      if (!val) { alert(`「${items[idx].label}」を入力または選択してください。`); return; }
+      if (!val) { 
+        alert(`「${items[idx].label}」は必須項目です。\n入力または選択してください。`); 
+        return; 
+      }
       options.push({ label: items[idx].label, value: val });
     }
+
+    if (!quantity) { alert('数量を入力してください。'); return; }
 
     cart.push({ maker, productName, options, quantity });
     renderCart();
